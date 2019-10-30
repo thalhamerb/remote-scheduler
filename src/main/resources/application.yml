@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: remote-scheduler
+  quartz:  #these quartz configs probably need to be defined by user
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          jobStore:
+            isClustered: "true"
+          scheduler:
+            instanceId: AUTO
+          threadPool:
+            threadCount: 100
+            threadPriority: 8
+
