@@ -1,6 +1,9 @@
 spring:
   application:
     name: remote-scheduler
+  jpa:
+    database-platform: org.hibernate.dialect.Oracle10Dialect
+    open-in-view: false
   quartz:  #these quartz configs probably need to be defined by user
     job-store-type: jdbc
     jdbc:
