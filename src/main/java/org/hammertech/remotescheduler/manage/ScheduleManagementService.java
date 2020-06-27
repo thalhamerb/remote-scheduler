@@ -1,20 +1,35 @@
 package org.hammertech.remotescheduler.manage;
 
+import lombok.RequiredArgsConstructor;
 import org.hammertech.remotescheduler.messaging.QueuePostingJob;
 import org.quartz.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-public class ScheduleManagementService {
+@RequiredArgsConstructor
+class ScheduleManagementService {
 
-    @Autowired
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
-    public void createJob(NewSchedule newSchedule) throws SchedulerException {
+    Set<JobDetail> getAppJobs(String appName) throws SchedulerException {
+        Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(appName));
+        return jobKeys.stream().map(jobKey -> {
+            try {
+                return scheduler.getJobDetail(jobKey);
+            } catch (SchedulerException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toSet());
+    }
+
+    void createJob(NewSchedule newSchedule) throws SchedulerException {
         if (!ExpireStrategy.CUSTOM.equals(newSchedule.getExpireStrategy())) {
             newSchedule.setSecondsToExpire(-1L);
         }
@@ -22,7 +37,7 @@ public class ScheduleManagementService {
         JobDetail jobDetail = JobBuilder.newJob().ofType(QueuePostingJob.class)
                 .storeDurably()
                 .withIdentity(newSchedule.getJobName(), newSchedule.getAppName())
-                .usingJobData(DataMapType.EXPIRE_STATEGY.toString(), newSchedule.getExpireStrategy().toString())
+                .usingJobData(DataMapType.EXPIRE_STRATEGY.toString(), newSchedule.getExpireStrategy().toString())
                 .usingJobData(DataMapType.EXP_TIME.toString(), newSchedule.getSecondsToExpire())
                 .withDescription(newSchedule.getDescription())
                 .build();
@@ -39,12 +54,12 @@ public class ScheduleManagementService {
                 .build();
     }
 
-    public void deleteJob(String appName, String jobName) throws SchedulerException {
+    void deleteJob(String appName, String jobName) throws SchedulerException {
         JobKey jobKey = getJobKey(appName, jobName);
         scheduler.deleteJob(jobKey);
     }
 
-    public void updateCron(String appName, String jobName, String cron) throws SchedulerException {
+    void updateCron(String appName, String jobName, String cron) throws SchedulerException {
         Trigger newTrigger = createTrigger(appName, jobName, cron);
         JobKey jobKey = getJobKey(appName, jobName);
         List<Trigger> triggerList = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);

@@ -1,12 +1,18 @@
-server:
-  port: 8084
-
 spring:
-  activemq:
-    broker-url: tcp://localhost:61616
-    user: admin
-    password: admin
   datasource:
     url:
     username:
     password:
+  jpa:
+    database-platform: org.hibernate.dialect.Oracle10Dialect
+    open-in-view: false
+#  rabbitmq:
+#    host:
+#    port:
+#    username:
+#    password:
+
+
+
+#todo add test cases and readme file
+# todo use gradle instead of maven

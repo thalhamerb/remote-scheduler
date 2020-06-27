@@ -1,27 +1,26 @@
 package org.hammertech.remotescheduler.messaging;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hammertech.remotescheduler.manage.DataMapType;
 import org.hammertech.remotescheduler.manage.ExpireStrategy;
 import org.quartz.*;
 import org.quartz.impl.JobDetailImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 
 @DisallowConcurrentExecution
 @Slf4j
-public class QueuePostingJob implements Job{
+@RequiredArgsConstructor
+public class QueuePostingJob implements Job {
 
-    @Autowired
-    private SchedulerSendService schedulerSendService;
-
+    private final MessageSendService messageSendService;
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    public void execute(JobExecutionContext context) {
         JobDetailImpl jobDetailImpl = (JobDetailImpl) context.getJobDetail();
         JobDataMap dataMap = context.getJobDetail().getJobDataMap();
-        String expireStrategyString = dataMap.getString(DataMapType.EXPIRE_STATEGY.toString());
+        String expireStrategyString = dataMap.getString(DataMapType.EXPIRE_STRATEGY.toString());
         ExpireStrategy expireStrategy = ExpireStrategy.valueOf(expireStrategyString);
         Long expireTime = dataMap.getLong(DataMapType.EXP_TIME.toString());
 
@@ -38,6 +37,6 @@ public class QueuePostingJob implements Job{
         }
 
         log.info(jobDetailImpl.getGroup() + " " + jobDetailImpl.getName() + " triggered: " + Instant.now());
-        schedulerSendService.sendSchedulerMessage(jobDetailImpl.getGroup(), jobDetailImpl.getName(), expireEpochTime);
+        messageSendService.sendSchedulerMessage(jobDetailImpl.getGroup(), jobDetailImpl.getName(), expireEpochTime);
     }
 }

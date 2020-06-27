@@ -1,6 +1,6 @@
 package org.hammertech.remotescheduler.manage;
 
-public class ScheduleDetail {
+class ScheduleDetail {
 
     private String appName;
     private String jobName;
