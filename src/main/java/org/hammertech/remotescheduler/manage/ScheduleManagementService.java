@@ -1,7 +1,7 @@
 package org.hammertech.remotescheduler.manage;
 
 import lombok.RequiredArgsConstructor;
-import org.hammertech.remotescheduler.messaging.QueuePostingJob;
+import org.hammertech.remotescheduler.scheduler.QueuePostingJob;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ class ScheduleManagementService {
 
     private final Scheduler scheduler;
 
-    Set<JobDetail> getAppJobs(String appName) throws SchedulerException {
+    Set<ScheduleDetail> getAppJobs(String appName) throws SchedulerException {
         Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(appName));
         return jobKeys.stream().map(jobKey -> {
             try {
@@ -26,10 +26,32 @@ class ScheduleManagementService {
                 e.printStackTrace();
                 return null;
             }
+        }).map(jobDetail -> {
+          try {
+              ScheduleDetail scheduleDetail = new ScheduleDetail();
+              scheduleDetail.setAppName(jobDetail.getKey().getGroup());
+              scheduleDetail.setJobName(jobDetail.getKey().getName());
+              scheduleDetail.setDescription(jobDetail.getDescription());
+              String expireStrategy = jobDetail.getJobDataMap().getString(DataMapType.EXPIRE_STRATEGY.toString());
+              scheduleDetail.setExpireStrategy(ExpireStrategy.valueOf(expireStrategy));
+              Long expTime = jobDetail.getJobDataMap().getLong(DataMapType.EXP_TIME.toString());
+              scheduleDetail.setSecondsToExpire(expTime != -1 ? expTime : null);
+              TriggerKey triggerKey = getTriggerKey(jobDetail.getKey());
+              CronTrigger trigger = (CronTrigger) scheduler.getTrigger(triggerKey);
+              scheduleDetail.setCron(trigger.getCronExpression());
+              scheduleDetail.setTriggerState(scheduler.getTriggerState(triggerKey).toString());
+              return scheduleDetail;
+          } catch (SchedulerException e) {
+              e.printStackTrace();
+              return null;
+          }
         }).collect(Collectors.toSet());
     }
 
     void createJob(NewSchedule newSchedule) throws SchedulerException {
+        if (newSchedule.getExpireStrategy() == null) {
+            newSchedule.setExpireStrategy(ExpireStrategy.NONE);
+        }
         if (!ExpireStrategy.CUSTOM.equals(newSchedule.getExpireStrategy())) {
             newSchedule.setSecondsToExpire(-1L);
         }

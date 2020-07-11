@@ -1,5 +1,10 @@
 package org.hammertech.remotescheduler.manage;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 class ScheduleDetail {
 
     private String appName;
@@ -8,5 +13,5 @@ class ScheduleDetail {
     private String cron;
     private ExpireStrategy expireStrategy;
     private Long secondsToExpire;
-    private String triggerStage;
+    private String triggerState;
 }

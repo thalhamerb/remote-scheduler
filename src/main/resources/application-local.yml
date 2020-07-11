@@ -1,18 +1,8 @@
-spring:
-  datasource:
-    url:
-    username:
-    password:
-  jpa:
-    database-platform: org.hibernate.dialect.Oracle10Dialect
-    open-in-view: false
-#  rabbitmq:
-#    host:
-#    port:
-#    username:
-#    password:
+#org:
+#  hammertech:
+#    remote-scheduler:
+#      queue-name-prefix: org.hammertech
 
 
-
-#todo add test cases and readme file
-# todo use gradle instead of maven
+#todo combine remote scheduler, client, and example into one project
+#todo make so doesn't require RemoteScheduledConfigurer.  Will use spring connection factory if not present

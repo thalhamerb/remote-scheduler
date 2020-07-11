@@ -1,4 +1,4 @@
-package org.hammertech.remotescheduler.messaging;
+package org.hammertech.remotescheduler.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

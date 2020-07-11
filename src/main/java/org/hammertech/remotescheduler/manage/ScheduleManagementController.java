@@ -2,7 +2,6 @@ package org.hammertech.remotescheduler.manage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.JobDetail;
 import org.quartz.SchedulerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Set;
 
-@RestController("/jobs")
+@RestController
+@RequestMapping("/jobs")
 @Slf4j
 @RequiredArgsConstructor
 class ScheduleManagementController {
@@ -19,7 +19,7 @@ class ScheduleManagementController {
     private final ScheduleManagementService scheduleManagementService;
 
     @GetMapping("/{appName}")
-    Set<JobDetail> getAppJobs(@PathVariable String appName) throws SchedulerException {
+    Set<ScheduleDetail> getAppJobs(@PathVariable String appName) throws SchedulerException {
         return scheduleManagementService.getAppJobs(appName);
     }
 

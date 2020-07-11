@@ -1,21 +1,8 @@
-server:
-  port: 8096
-
 spring:
   application:
     name: remote-scheduler
-  quartz:  #default quartz properties that can be overriden by user
-    job-store-type: jdbc
-    jdbc:
-      initialize-schema: never
-    properties:
-      org:
-        quartz:
-          jobStore:
-            isClustered: "true"
-          scheduler:
-            instanceId: AUTO
-          threadPool:
-            threadCount: 100
-            threadPriority: 8
+
+server:
+  port: 8096
+
 
