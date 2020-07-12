@@ -126,18 +126,18 @@ application.yml...
 ```
 
 The queue name created on the AMQP message broker is a combination of a <prefix>.<job name>
-By default the prefix = org.hammertech, but can be changed by defining the following property 
-in the Remote Scheduler service and the client service.  Also the min and max number of consumers
+By default the prefix = org.hammertech.remote-scheduler, but can be changed by defining the following property 
+in the Remote Scheduler service and the client services.  Also the min and max number of consumers
 to process job messages can be overriden.  
 
 ```
 org:
   hammertech:
     remote-scheduler:
-      queue-name-prefix: org.hammertech
+      queue-name-prefix: org.hammertech.remote-scheduler
 ```
 
-Also the min and max number of consumers to process job messages in the client service 
+The min and max number of consumers to process job messages in the client service 
 can be overriden.  Below are the defaults  
 
 ```
@@ -146,6 +146,16 @@ org:
     remote-scheduler:
       concurrent-consumers: 5
       max-conccurent-consumers: 10
+```
+
+If more than one message broker is defined in the client service, can create the following bean 
+to define which should be used
+
+```
+@Bean
+RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connectionFactory) {
+    return new RemoteScheduledConfigurer(connectionFactory);
+}
 ```
 
 ## Built With

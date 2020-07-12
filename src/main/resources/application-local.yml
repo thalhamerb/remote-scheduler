@@ -1,8 +1,0 @@
-#org:
-#  hammertech:
-#    remote-scheduler:
-#      queue-name-prefix: org.hammertech
-
-
-#todo combine remote scheduler, client, and example into one project
-#todo make so doesn't require RemoteScheduledConfigurer.  Will use spring connection factory if not present
