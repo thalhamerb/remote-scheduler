@@ -11,5 +11,3 @@ public class RemoteSchedulerApplication {
 	}
 
 }
-
-//todo make so doesn't require RemoteScheduledConfigurer.  Will use spring connection factory if not present

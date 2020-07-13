@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 @EnableRemoteScheduled
-public class RemoteSchedulerDemoApplication {
+public class RemoteSchedulerClientSampleApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RemoteSchedulerDemoApplication.class, args);
+        SpringApplication.run(RemoteSchedulerClientSampleApplication.class, args);
     }
 
     @Bean

@@ -9,9 +9,9 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>remote-schedule-server</module>
-		<module>remote-schedule-client</module>
-		<module>remote-schedule-client-sample</module>
+		<module>remote-scheduler-server</module>
+		<module>remote-scheduler-client</module>
+		<module>remote-scheduler-client-sample</module>
 	</modules>
 
 </project>

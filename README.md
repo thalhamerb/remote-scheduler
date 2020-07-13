@@ -48,8 +48,8 @@ POST http://localhost:8096/jobs
 
 Create a new Spring Boot client service to use this new schedule. Add the remote-scheduler-client dependency.  
 Define application.yml with application name and amqp properties similar to above.  In the 
-main class add the @EnableRemoteScheduled tag and create an annotated method to run when the message for that 
-job is consumed.
+main class add @EnableRemoteScheduled to class, define the RemoteScheduledConfigurer, and create a method 
+with the @RemoteScheduled annotation to run when a message for that job is consumed.
 
 ```
 pom.xml...
@@ -77,6 +77,11 @@ Main class...
     
         public static void main(String[] args) {
             SpringApplication.run(RemoteSchedulerDemoApplication.class, args);
+        }
+
+        @Bean
+        RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connectionFactory) {
+            return new RemoteScheduledConfigurer(connectionFactory);
         }
     
         @RemoteScheduled(jobName = "test-job")
@@ -158,23 +163,17 @@ RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connection
 }
 ```
 
-## Built With
-
-* [Quartz Scheduler](http://www.quartz-scheduler.org/) - The underlying scheduler
-* [Maven](https://maven.apache.org/) - Dependency Management
-
 ## Future improvements
 
 1) Make Remote Scheduler a dependency that can be added to a new project rather than 
 having to update the project directly
-2) Make so client application posts to a queue every 15 seconds while running a job 
-so the remote scheduler can track the job is still running.  Also send a completion message 
-when the job is completed.   If the remote scheduler stops getting ping messages without 
-getting a completion message, we know the job was unable to complete.  
-Being aware of these failures would allow re-running of the job a configurable number of times.
+2) Right now, the remote scheduler is setup to send and forget about schedule job run and having the message 
+expire after configurable amount of time.  Can make smarter by having client application posts to a queue 
+every xx seconds while running a job so the remote scheduler can track the job is still running.  Also send 
+a completion message when the job is completed. Would be useful for jobs that don't allow concurrent executions. 
 Also this will remove the need for expire strategy and expire time defined in application.
 3) Add test cases
 
 ## Authors
 
-* **Brian Thalhamer** - *Initial work*
+* **Brian Thalhamer**

@@ -90,14 +90,8 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
         remoteSchedulerProperties = beanFactory.getBean(RemoteSchedulerProperties.class);
         environment = beanFactory.getBean(Environment.class);
 
-        if (remoteScheduledConfigurer == null) {
-            throw new IllegalStateException("RemoteScheduledConfigurer not defined");
-        }
         if (remoteScheduledConfigurer.getConnectionFactory() == null) {
             throw new IllegalStateException("RemoteScheduledConfigurer's connection factory not defined");
-        }
-        if (environment == null) {
-            throw  new IllegalStateException("spring environment not defined");
         }
     }
 
