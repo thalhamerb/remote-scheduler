@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("org.hammertech.remote-scheduler")
 @Getter
 @Setter
-public class RemoteSchedulerProperties {
+public class RemoteSchedulerServerProperties {
 
     /**
      * queue name prefix defined in remote scheduler

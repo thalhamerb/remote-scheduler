@@ -12,6 +12,7 @@
 		<module>remote-scheduler-server</module>
 		<module>remote-scheduler-client</module>
 		<module>remote-scheduler-client-sample</module>
+		<module>remote-scheduler-server-sample</module>
 	</modules>
 
 </project>

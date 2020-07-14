@@ -17,7 +17,7 @@ public class MessageSendService {
 
     private final AmqpAdmin amqpAdmin;
 
-    private final RemoteSchedulerProperties remoteSchedulerProperties;
+    private final RemoteSchedulerServerProperties remoteSchedulerServerProperties;
 
     private Set<String> appQueueNames = new HashSet<>();
 
@@ -25,10 +25,10 @@ public class MessageSendService {
         ScheduledMessage message = new ScheduledMessage();
         message.setJobName(jobName);
         message.setExpireTime(epochExpireTime);
-        String queueName = String.format("%s.%s", remoteSchedulerProperties.getQueueNamePrefix(), appName);
+        String queueName = String.format("%s.%s", remoteSchedulerServerProperties.getQueueNamePrefix(), appName);
         if (!appQueueNames.contains(queueName) && amqpAdmin.getQueueProperties(queueName) == null) {
-            appQueueNames.add(queueName);
             createNewQueue(queueName);
+            appQueueNames.add(queueName);
         }
         amqpTemplate.convertAndSend(queueName, message);
     }

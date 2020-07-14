@@ -1,29 +1,50 @@
 # Remote Scheduler
 
 Centralized scheduler that manages cron jobs across multiple services.  Inspired by Spring Scheduling and backed by 
-Quartz scheduler, this service is useful for a microservices architecture where schedules 
+Quartz scheduler, this service is targeted for a message-driven microservices architecture where schedules 
 are managed across many services.  
 
 ## Getting Started
 
-The Remote Scheduler service requires Quartz and the datasource to be defined.  By default 
-an in-memory datasource is used with base quartz configuration.  For resiliency in production, 
-it is recommended to have an external database and Quartz running in cluster mode.  
+The Remote Scheduler service requires a datasource and an AMQP message broker.  By default, 
+an in-memory datasource is used, but can be configured to an external database (example below).  
 
-The Remote Scheduler initiates jobs on client services by posting messages to an AMPQ message broker 
-that is consumed by the client services.  The method annotated with the job name is run.
+The Remote Scheduler initiates jobs on client services by posting messages to an AMQP message broker 
+that is consumed by the client services.  The method annotated with the job name is ran.  
 
 
 ### Prerequisites
 
-Download a standalone AMQP message broker (ex. RabbitMQ or Apache Kafka).  Using Docker Hub is recommended (https://hub.docker.com/_/rabbitmq)
+Download a standalone AMQP message broker (ex. RabbitMQ or Apache Kafka).  It is recommended to use Docker Hub 
+for quick setup (https://hub.docker.com/_/rabbitmq)
 
 
-### Installing
+### Setting up Remote Scheduler Server
 
-Setting up Remote Scheduler with an ephemeral in-memory database
+Create a new project, add the remote scheduler server dependency to the pom
 
-Create application.yml file and define AMQP message broker properties.
+```
+
+<dependency>
+    <groupId>org.hammertech</groupId>
+    <artifactId>remote-scheduler-server</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+Annotate main class with @EnableRemoteScheduledServer 
+
+```
+@SpringBootApplication
+@EnableRemoteScheduledServer
+public class RemoteSchedulerServerSampleApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(RemoteSchedulerServerSampleApplication.class, args);
+    }
+}
+```
+
+Define AMQP message broker properties in application.yml file.  Below is the default.
 
 ```
 spring:
@@ -34,7 +55,7 @@ spring:
     password: guest
 ```
 
-Start the application and create an example schedule for a client app that will be called "test-app".
+Start the application and create an example schedule for a client app called "test-app".  
 
 ```
 POST http://localhost:8096/jobs
@@ -46,59 +67,58 @@ POST http://localhost:8096/jobs
     }
 ```
 
-Create a new Spring Boot client service to use this new schedule. Add the remote-scheduler-client dependency.  
-Define application.yml with application name and amqp properties similar to above.  In the 
-main class add @EnableRemoteScheduled to class, define the RemoteScheduledConfigurer, and create a method 
-with the @RemoteScheduled annotation to run when a message for that job is consumed.
+Look at remote-scheduler-server-sample module for an example.
+
+### Integrate Remote Scheduler Client
+
+In your Spring Boot client service, add the remote-scheduler-client dependency.
 
 ```
-pom.xml...
-    <dependency>
-        <groupId>org.hammertech</groupId>
-        <artifactId>remote-scheduler-client</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-    </dependency>
+<dependency>
+    <groupId>org.hammertech</groupId>
+    <artifactId>remote-scheduler-client</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+  
+Add the following to the application.yml.
 
-application.yml...
-    spring:
-      application:
-        name: test-app
-      rabbitmq:
-          host: localhost
-          port: 5672
-          username: guest
-          password: guest
+```
+spring:
+  application:
+    name: test-app
+  rabbitmq:
+      host: localhost
+      port: 5672
+      username: guest
+      password: guest
+```
 
-Main class...
+Annotate the main class with @EnableRemoteScheduled and create a method annotated with the @RemoteScheduled annotation 
+to run the test-job.  Start the app and see the test job writes a log to the console every minute.
 
-    @SpringBootApplication
-    @EnableRemoteScheduled
-    public class RemoteSchedulerDemoApplication {
-    
-        public static void main(String[] args) {
-            SpringApplication.run(RemoteSchedulerDemoApplication.class, args);
-        }
+```
+@SpringBootApplication
+@EnableRemoteScheduled
+public class RemoteSchedulerDemoApplication {
 
-        @Bean
-        RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connectionFactory) {
-            return new RemoteScheduledConfigurer(connectionFactory);
-        }
-    
-        @RemoteScheduled(jobName = "test-job")
-        public void doSomething() {
-            System.out.println("ran test-Job");
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(RemoteSchedulerDemoApplication.class, args);
     }
+
+    @RemoteScheduled(jobName = "test-job")
+    public void doSomething() {
+        System.out.println("ran test-Job");
+    }
+}
 ```
 
-You should see that every minute the test job writes a log to the console.  Put your job logic in 
-this method.
+Look at remote-scheduler-server-sample module for an example.
 
 ## Production Deployment
 
-In production it is recommended to set up an external database.  To do this, add the 
-appropriate database dependency, define the datasoure applicaion properties, and configure Quartz in
-clustered mode
+In production, it is recommended to set up an external database for resiliency.  To do this, add the database dependency, 
+define the datasoure application properties, and configure Quartz in clustered mode.
 
 ```
 pom.xml...
@@ -130,10 +150,11 @@ application.yml...
                 threadPriority: 8
 ```
 
-The queue name created on the AMQP message broker is a combination of a <prefix>.<job name>
-By default the prefix = org.hammertech.remote-scheduler, but can be changed by defining the following property 
-in the Remote Scheduler service and the client services.  Also the min and max number of consumers
-to process job messages can be overriden.  
+## More Detail
+
+A queue is created for each client app based on the naming convention: <prefix>.<app name>
+By default the prefix = org.hammertech.remote-scheduler, but this can be changed by defining the following property 
+in the Remote Scheduler and client services.  
 
 ```
 org:
@@ -142,8 +163,7 @@ org:
       queue-name-prefix: org.hammertech.remote-scheduler
 ```
 
-The min and max number of consumers to process job messages in the client service 
-can be overriden.  Below are the defaults  
+The min and max number of consumers to process job messages in the client service can be changed.
 
 ```
 org:
@@ -153,7 +173,7 @@ org:
       max-conccurent-consumers: 10
 ```
 
-If more than one message broker is defined in the client service, can create the following bean 
+If multiple message brokers are defined in the client service, create the following bean 
 to define which should be used
 
 ```
@@ -165,14 +185,11 @@ RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connection
 
 ## Future improvements
 
-1) Make Remote Scheduler a dependency that can be added to a new project rather than 
-having to update the project directly
-2) Right now, the remote scheduler is setup to send and forget about schedule job run and having the message 
-expire after configurable amount of time.  Can make smarter by having client application posts to a queue 
-every xx seconds while running a job so the remote scheduler can track the job is still running.  Also send 
-a completion message when the job is completed. Would be useful for jobs that don't allow concurrent executions. 
-Also this will remove the need for expire strategy and expire time defined in application.
-3) Add test cases
+1) Right now, schedule runs are "send and forget" creating messages that expire after a configurable amount of 
+time with the default being the next fire time.  To disallow concurrent runs of the same job, can make the client application 
+posts to a queue every few seconds while running a job so the remote scheduler can track the job is still running.  
+Also send a completion message when done. 
+2) Add test cases
 
 ## Authors
 
