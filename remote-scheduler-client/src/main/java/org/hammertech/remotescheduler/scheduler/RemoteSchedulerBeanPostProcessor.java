@@ -1,7 +1,6 @@
 package org.hammertech.remotescheduler.scheduler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.SerializationUtils;
@@ -23,16 +22,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware, ApplicationListener<ContextRefreshedEvent> {
 
-    private final Logger log = LoggerFactory.getLogger("org.hammertech.remoteschedulerclient.scheduler.RemoteSchedulerBeanPostProcessor");
     private ConfigurableListableBeanFactory beanFactory;
     private RemoteScheduledConfigurer remoteScheduledConfigurer;
     private Environment environment;
     private RemoteSchedulerProperties remoteSchedulerProperties;
 
-    private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap(64));
-    private Map<String, ScheduledMethod> scheduledMethods = new HashMap<>();
+    private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
+    private final Map<String, ScheduledMethod> scheduledMethods = new HashMap<>();
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -43,7 +42,7 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
                 RemoteScheduled remoteScheduled = AnnotationUtils.findAnnotation(method, RemoteScheduled.class);
                 if (remoteScheduled != null) {
                     hasAnnotations = true;
-                    regiesterTask(bean, method, remoteScheduled);
+                    registerTask(bean, method, remoteScheduled);
                 }
             }
 
@@ -54,7 +53,7 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
         return bean;
     }
 
-    private void regiesterTask(Object bean, Method method, RemoteScheduled remoteScheduled) {
+    private void registerTask(Object bean, Method method, RemoteScheduled remoteScheduled) {
         if (!scheduledMethods.containsKey(remoteScheduled.jobName())) {
             ScheduledMethod scheduledMethod = new ScheduledMethod(bean, method);
             scheduledMethods.put(remoteScheduled.jobName(), scheduledMethod);
@@ -91,7 +90,7 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
         environment = beanFactory.getBean(Environment.class);
 
         if (remoteScheduledConfigurer.getConnectionFactory() == null) {
-            throw new IllegalStateException("RemoteScheduledConfigurer's connection factory not defined");
+            throw new IllegalStateException("RemoteScheduledConfigurer connection factory not defined");
         }
     }
 
@@ -115,7 +114,7 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
                 ScheduledMessage scheduledMessage = (ScheduledMessage) SerializationUtils.deserialize(message.getBody());
                 ScheduledMethod scheduledMethod = scheduledMethods.get(scheduledMessage.getJobName());
                 if (scheduledMethod == null) {
-                    log.error("Messge for job {} not processed because application not configured to process job", scheduledMessage.getJobName());
+                    log.error("Message for job {} not processed because application not configured to process job", scheduledMessage.getJobName());
                 } else if (scheduledMessage.getExpireTime() != null && System.currentTimeMillis() > scheduledMessage.getExpireTime()) {
                     log.info("Message for job {} not processed because it expired at time {}",
                             scheduledMessage.getJobName(), scheduledMessage.getExpireTime());

@@ -1,6 +1,6 @@
 # Remote Scheduler
 
-Centralized scheduler that manages cron jobs across multiple services.  Inspired by Spring Scheduling and backed by 
+This is a centralized scheduler that manages cron jobs across multiple services.  Inspired by Spring Scheduling and backed by 
 Quartz scheduler, this service is targeted for a message-driven microservices architecture where schedules 
 are managed across many services.  
 
@@ -16,7 +16,7 @@ that is consumed by the client services.  The method annotated with the job name
 ### Prerequisites
 
 Download a standalone AMQP message broker (ex. RabbitMQ or Apache Kafka).  It is recommended to use Docker Hub 
-for quick setup (https://hub.docker.com/_/rabbitmq)
+for a quick setup (https://hub.docker.com/_/rabbitmq)
 
 
 ### Setting up Remote Scheduler Server
@@ -118,7 +118,7 @@ Look at remote-scheduler-server-sample module for an example.
 ## Production Deployment
 
 In production, it is recommended to set up an external database for resiliency.  To do this, add the database dependency, 
-define the datasoure application properties, and configure Quartz in clustered mode.
+define the datasource application properties, and configure Quartz in clustered mode.
 
 ```
 pom.xml...
@@ -152,7 +152,7 @@ application.yml...
 
 ## More Detail
 
-A queue is created for each client app based on the naming convention: <prefix>.<app name>
+Each client app creates a queue based on the naming convention: <prefix>.<app name>
 By default the prefix = org.hammertech.remote-scheduler, but this can be changed by defining the following property 
 in the Remote Scheduler and client services.  
 
@@ -186,8 +186,8 @@ RemoteScheduledConfigurer remoteScheduledConfigurer(ConnectionFactory connection
 ## Future improvements
 
 1) Right now, schedule runs are "send and forget" creating messages that expire after a configurable amount of 
-time with the default being the next fire time.  To disallow concurrent runs of the same job, can make the client application 
-posts to a queue every few seconds while running a job so the remote scheduler can track the job is still running.  
+time with the default being the next fire time.  To disallow concurrent runs of the same job, the client application can 
+post to a queue every few seconds while running a job, so the remote scheduler can track the job is still running.  
 Also send a completion message when done. 
 2) Add test cases
 

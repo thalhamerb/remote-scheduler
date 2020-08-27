@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +27,7 @@ class ScheduleManagementService {
                 e.printStackTrace();
                 return null;
             }
-        }).map(jobDetail -> {
+        }).filter(Objects::nonNull).map(jobDetail -> {
           try {
               ScheduleDetail scheduleDetail = new ScheduleDetail();
               scheduleDetail.setAppName(jobDetail.getKey().getGroup());
@@ -34,7 +35,7 @@ class ScheduleManagementService {
               scheduleDetail.setDescription(jobDetail.getDescription());
               String expireStrategy = jobDetail.getJobDataMap().getString(DataMapType.EXPIRE_STRATEGY.toString());
               scheduleDetail.setExpireStrategy(ExpireStrategy.valueOf(expireStrategy));
-              Long expTime = jobDetail.getJobDataMap().getLong(DataMapType.EXP_TIME.toString());
+              long expTime = jobDetail.getJobDataMap().getLong(DataMapType.EXP_TIME.toString());
               scheduleDetail.setSecondsToExpire(expTime != -1 ? expTime : null);
               TriggerKey triggerKey = getTriggerKey(jobDetail.getKey());
               CronTrigger trigger = (CronTrigger) scheduler.getTrigger(triggerKey);
@@ -84,7 +85,7 @@ class ScheduleManagementService {
     void updateCron(String appName, String jobName, String cron) throws SchedulerException {
         Trigger newTrigger = createTrigger(appName, jobName, cron);
         JobKey jobKey = getJobKey(appName, jobName);
-        List<Trigger> triggerList = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+        List<? extends Trigger> triggerList = scheduler.getTriggersOfJob(jobKey);
         if (!CollectionUtils.isEmpty(triggerList) && triggerList.size() == 1) {
             TriggerKey existingTriggerKey = triggerList.get(0).getKey();
             scheduler.rescheduleJob(existingTriggerKey, newTrigger);

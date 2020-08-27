@@ -11,7 +11,3 @@ public class RemoteSchedulerClientApplication {
 	}
 
 }
-
-//todo - add test cases and readme file
-//todo - make amqp instead of jms and with rabbitmq instead of activemq
-//todo - use gradle instead of maven
