@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hammertech.remotescheduler.manage.DataMapType;
 import org.hammertech.remotescheduler.manage.ExpireStrategy;
-import org.quartz.*;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
 import org.quartz.impl.JobDetailImpl;
 
 import java.time.Instant;
@@ -22,8 +25,13 @@ public class QueuePostingJob implements Job {
         JobDataMap dataMap = context.getJobDetail().getJobDataMap();
         String expireStrategyString = dataMap.getString(DataMapType.EXPIRE_STRATEGY.toString());
         ExpireStrategy expireStrategy = ExpireStrategy.valueOf(expireStrategyString);
-        Long expireTime = dataMap.getLong(DataMapType.EXP_TIME.toString());
+        Long expireTimeMinutes = dataMap.getLong(DataMapType.EXP_TIME_MINUTES.toString());
+        Long expireEpochTime = getExpireEpochTime(context, expireStrategy, expireTimeMinutes);
+        log.info(jobDetailImpl.getGroup() + " " + jobDetailImpl.getName() + " triggered: " + Instant.now());
+        messageSendService.sendSchedulerMessage(jobDetailImpl.getGroup(), jobDetailImpl.getName(), expireEpochTime);
+    }
 
+    private Long getExpireEpochTime(JobExecutionContext context, ExpireStrategy expireStrategy, Long expireTimeMinutes) {
         Long expireEpochTime = null;
         switch (expireStrategy) {
             case ON_NEXT_SCHEDULE:
@@ -32,11 +40,9 @@ public class QueuePostingJob implements Job {
                 }
                 break;
             case CUSTOM:
-                    expireEpochTime = System.currentTimeMillis() + (expireTime * 1000);
-                    break;
+                expireEpochTime = System.currentTimeMillis() + (expireTimeMinutes * 60000);
+                break;
         }
-
-        log.info(jobDetailImpl.getGroup() + " " + jobDetailImpl.getName() + " triggered: " + Instant.now());
-        messageSendService.sendSchedulerMessage(jobDetailImpl.getGroup(), jobDetailImpl.getName(), expireEpochTime);
+        return expireEpochTime;
     }
 }

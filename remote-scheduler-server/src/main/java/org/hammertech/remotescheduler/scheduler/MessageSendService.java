@@ -24,7 +24,7 @@ public class MessageSendService {
     void sendSchedulerMessage(String appName, String jobName, Long epochExpireTime) {
         ScheduledMessage message = new ScheduledMessage();
         message.setJobName(jobName);
-        message.setExpireTime(epochExpireTime);
+        message.setExpireEpochTime(epochExpireTime);
         String queueName = String.format("%s.%s", remoteSchedulerServerProperties.getQueueNamePrefix(), appName);
         if (!appQueueNames.contains(queueName) && amqpAdmin.getQueueProperties(queueName) == null) {
             createNewQueue(queueName);

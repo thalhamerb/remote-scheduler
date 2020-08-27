@@ -12,5 +12,5 @@ public class ScheduledMessage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String jobName;
-    private Long expireTime;
+    private Long expireEpochTime;
 }

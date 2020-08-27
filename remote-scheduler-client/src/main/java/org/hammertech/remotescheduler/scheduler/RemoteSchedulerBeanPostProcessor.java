@@ -115,9 +115,9 @@ public class RemoteSchedulerBeanPostProcessor implements BeanPostProcessor, Bean
                 ScheduledMethod scheduledMethod = scheduledMethods.get(scheduledMessage.getJobName());
                 if (scheduledMethod == null) {
                     log.error("Message for job {} not processed because application not configured to process job", scheduledMessage.getJobName());
-                } else if (scheduledMessage.getExpireTime() != null && System.currentTimeMillis() > scheduledMessage.getExpireTime()) {
+                } else if (scheduledMessage.getExpireEpochTime() != null && System.currentTimeMillis() > scheduledMessage.getExpireEpochTime()) {
                     log.info("Message for job {} not processed because it expired at time {}",
-                            scheduledMessage.getJobName(), scheduledMessage.getExpireTime());
+                            scheduledMessage.getJobName(), scheduledMessage.getExpireEpochTime());
                 } else {
                     scheduledMethod.getMethod().invoke(scheduledMethod.getBean());
                 }

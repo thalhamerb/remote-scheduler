@@ -22,5 +22,5 @@ class NewSchedule {
 
     private ExpireStrategy expireStrategy;
 
-    private Long secondsToExpire;
+    private Long minutesToExpire;
 }

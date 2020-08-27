@@ -35,7 +35,7 @@ class ScheduleManagementService {
               scheduleDetail.setDescription(jobDetail.getDescription());
               String expireStrategy = jobDetail.getJobDataMap().getString(DataMapType.EXPIRE_STRATEGY.toString());
               scheduleDetail.setExpireStrategy(ExpireStrategy.valueOf(expireStrategy));
-              long expTime = jobDetail.getJobDataMap().getLong(DataMapType.EXP_TIME.toString());
+              long expTime = jobDetail.getJobDataMap().getLong(DataMapType.EXP_TIME_MINUTES.toString());
               scheduleDetail.setSecondsToExpire(expTime != -1 ? expTime : null);
               TriggerKey triggerKey = getTriggerKey(jobDetail.getKey());
               CronTrigger trigger = (CronTrigger) scheduler.getTrigger(triggerKey);
@@ -54,14 +54,14 @@ class ScheduleManagementService {
             newSchedule.setExpireStrategy(ExpireStrategy.NONE);
         }
         if (!ExpireStrategy.CUSTOM.equals(newSchedule.getExpireStrategy())) {
-            newSchedule.setSecondsToExpire(-1L);
+            newSchedule.setMinutesToExpire(-1L);
         }
 
         JobDetail jobDetail = JobBuilder.newJob().ofType(QueuePostingJob.class)
                 .storeDurably()
                 .withIdentity(newSchedule.getJobName(), newSchedule.getAppName())
                 .usingJobData(DataMapType.EXPIRE_STRATEGY.toString(), newSchedule.getExpireStrategy().toString())
-                .usingJobData(DataMapType.EXP_TIME.toString(), newSchedule.getSecondsToExpire())
+                .usingJobData(DataMapType.EXP_TIME_MINUTES.toString(), newSchedule.getMinutesToExpire())
                 .withDescription(newSchedule.getDescription())
                 .build();
 
