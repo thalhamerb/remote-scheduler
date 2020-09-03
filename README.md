@@ -215,12 +215,13 @@ custom expiration time of 5 minutes
 ## Future improvements
 
 1) Right now, schedule runs are "send and forget" creating messages that expire after a configurable amount of 
-time with the default being the next schedule fire time.  The more common use case is to either allow a job to run 
-multiple times concurrently or not.  To accomplish this the client application can post to a queue every few seconds 
+time with the default being the next schedule fire time.  Sometimes users do not want a schedule to be able to run
+more than once at a time.  To accomplish this the client application can post to a queue every few seconds 
 while running a job, so the remote scheduler can track the job is still running.  Then it can send a completion message 
-when done.  This would be a big improvement because it would remove the need for the more complicated schedule expire 
-logic and would also give the ability for the remote scheduler server to track stats about job runtimes, completions, etc.  
-2) Make a decision to call these schedules or jobs.  Shouldn't use both terms for same thing.
+when done.  This tracking would allow for a couple improvements.  Schedule expire on message can be removed because can 
+be tracked on remote scheduler server side to send the next schedule message or not.  Also this would give the ability 
+for the remote scheduler server to track stats about job runtimes, completions, etc.  
+2) Change references to "job" to "schedule" so there isn't consistent terminology.
 3) Add test cases
 4) Replace Quartz Scheduler implementation in Remote Scheduler Server to use a custom implementation, since Quartz
 was originally meant to be embedded in the client application rather than trigger schedules remotely.
